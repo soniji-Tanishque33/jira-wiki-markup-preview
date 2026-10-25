@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Jira Wiki Markup Live Preview - Free Online Jira Text Formatting Editor</title>
+<meta name="description" content="Free online Jira wiki markup editor with live preview. Write h1., *bold*, {code}, tables and lists and see how they look in Jira before you post. Runs in your browser; nothing is uploaded.">
+<meta name="keywords" content="jira wiki markup, jira text formatting, jira preview, jira formatting preview, jira markup editor, jira syntax">
+<meta property="og:title" content="Jira Wiki Markup Live Preview">
+<meta property="og:description" content="Write Jira wiki markup and see how it will look in Jira, live. Free, no sign-up, nothing uploaded.">
+<meta property="og:type" content="website">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+/* ---------- app shell ---------- */
+html, body { height: 100%; margin: 0; }
+body { display: flex; flex-direction: column; font: 13px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: #172b4d; background: #fff; }
+#bar { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; padding: 6px 8px; border-bottom: 1px solid #c1c7d0; background: #f4f5f7; }
+#bar .sep { width: 1px; height: 20px; background: #c1c7d0; margin: 0 4px; }
+#bar button, #bar select, #bar input[type=text] { font: inherit; padding: 2px 7px; border: 1px solid #b3bac5; border-radius: 3px; background: #fff; color: #172b4d; }
+#bar button { cursor: pointer; min-width: 26px; }
+#bar button:hover { background: #ebecf0; }
+#bar label { display: inline-flex; align-items: center; gap: 4px; }
+#bar input[type=text] { width: 190px; }
+#bar #baseUrl { width: 190px; }
+#bar .grow { flex: 1; }
+#status { color: #5e6c84; min-width: 60px; }
+#main { flex: 1; display: flex; min-height: 0; }
+#editor { box-sizing: border-box; width: 50%; min-width: 120px; resize: none; border: 0; padding: 12px; margin: 0; outline: none; font: 13px/1.5 Consolas, Menlo, Monaco, "Courier New", monospace; color: #172b4d; tab-size: 4; overflow: auto; }
+#divider { width: 6px; cursor: col-resize; background: #dfe1e6; flex: none; }
+#divider:hover, #divider.drag { background: #b3bac5; }
+#previewWrap { flex: 1; min-width: 120px; overflow: auto; padding: 14px 24px 40px; box-sizing: border-box; }
+
+/* ---------- Jira-like rendering ---------- */
+.wiki { font: 14px/1.4285714 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif; color: #172b4d; word-wrap: break-word; }
+.wiki > :first-child { margin-top: 0 !important; }
+.wiki p { margin: 10px 0 0; }
+.wiki h1, .wiki h2, .wiki h3, .wiki h4, .wiki h5, .wiki h6 { color: #172b4d; margin: 20px 0 0; }
+.wiki h1 { font-size: 24px; font-weight: 500; line-height: 1.25; letter-spacing: -0.01em; margin-top: 28px; }
+.wiki h2 { font-size: 20px; font-weight: 500; line-height: 1.2; letter-spacing: -0.008em; margin-top: 28px; }
+.wiki h3 { font-size: 16px; font-weight: 600; line-height: 1.25; letter-spacing: -0.006em; margin-top: 28px; }
+.wiki h4 { font-size: 14px; font-weight: 600; line-height: 1.43; margin-top: 20px; }
+.wiki h5 { font-size: 12px; font-weight: 600; line-height: 1.33; margin-top: 20px; }
+.wiki h6 { font-size: 11px; font-weight: 600; line-height: 1.27; margin-top: 20px; color: #6b778c; text-transform: uppercase; }
+.wiki a { color: #0052cc; text-decoration: none; }
+.wiki a:hover { text-decoration: underline; }
+.wiki a[name] { color: inherit; }
+.wiki tt, .wiki code { font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; }
+.wiki del { text-decoration: line-through; }
+.wiki ins { text-decoration: underline; }
+.wiki cite { font-style: italic; }
+.wiki hr { border: 0; border-top: 1px solid #ccc; height: 0; margin: 15px 0; }
+.wiki ul, .wiki ol { margin: 10px 0 0; padding-left: 28px; }
+.wiki li > ul, .wiki li > ol { margin-top: 0; }
+.wiki ul.alternate { list-style-type: square; }
+.wiki li { margin: 0; padding: 0; }
+.wiki blockquote { margin: 10px 0 0 10px; padding: 0 0 0 12px; border-left: 1px solid #ccc; color: #707070; }
+.wiki blockquote > p:first-child { margin-top: 0; }
+.wiki .error { color: #d04437; }
+.wiki font { font-family: inherit; }
+.wiki .table-wrap { overflow-x: auto; margin: 10px 0 0; }
+.wiki table.confluenceTable { border-collapse: collapse; margin: 0; }
+.wiki .confluenceTh, .wiki .confluenceTd { border: 1px solid #ccc; padding: 7px 10px; vertical-align: top; text-align: left; }
+.wiki .confluenceTh { background: #f0f0f0; font-weight: bold; }
+.wiki .confluenceTd > ul, .wiki .confluenceTd > ol, .wiki .confluenceTh > ul, .wiki .confluenceTh > ol { margin-top: 0; }
+.wiki .panel { border: 1px solid #ccc; margin: 10px 0 0; overflow: hidden; background: #fff; }
+.wiki .panelHeader { border-bottom: 1px solid #ccc; padding: 10px; background: #f7f7f7; }
+.wiki .panelContent { padding: 10px; }
+.wiki .panelContent > :first-child { margin-top: 0; }
+.wiki .code.panel .panelContent, .wiki .preformatted.panel .panelContent { background: #f5f5f5; }
+.wiki pre { margin: 0; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; line-height: 1.5; white-space: pre; overflow: auto; color: #172b4d; }
+.wiki .codeContent.has-lines { display: flex; }
+.wrapcode .wiki pre:not(.line-numbers) { white-space: pre-wrap; overflow-wrap: anywhere; }
+.wrapcode .wiki .has-lines pre.code-body { white-space: pre; overflow: auto; }
+.wiki .codeContent.has-lines pre.line-numbers { color: #999; text-align: right; padding-right: 10px; margin-right: 10px; border-right: 1px solid #ccc; user-select: none; overflow: visible; flex: none; }
+.wiki .codeContent.has-lines pre.code-body { flex: 1; min-width: 0; }
+.wiki .code-keyword { color: #000091; }
+.wiki .code-object { color: #910091; }
+.wiki .code-quote { color: #009100; }
+.wiki .code-quote-red { color: #910000; }
+.wiki .code-comment { color: #808080; }
+.wiki .code-tag { color: #000091; }
+.wiki .emoticon { display: inline-block; width: 16px; height: 16px; line-height: 16px; text-align: center; font-size: 13px; vertical-align: text-bottom; font-style: normal; }
+.wiki .image-wrap img { max-width: 100%; }
+.wiki .image-placeholder { display: inline-block; padding: 2px 8px; border: 1px dashed #97a0af; color: #5e6c84; background: #f4f5f7; font-size: 12px; }
+.wiki a.user-hover { white-space: nowrap; }
+.wiki .attachment-link:before { content: "\1F4CE\00a0"; }
+</style>
+</head>
+<body>
+<header style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">
+  <h1>Jira Wiki Markup Live Preview</h1>
+  <p>A free online editor for Jira text formatting. Type Jira wiki markup (headings, bold, lists, tables, links, panels and code blocks) and see how it will look in Jira, as you type. Nothing is uploaded; it runs in your browser.</p>
+</header>
+<div id="bar">
+  <button data-act="bold" title="Bold  *text*  (Ctrl+B)"><b>B</b></button>
+  <button data-act="italic" title="Italic  _text_  (Ctrl+I)"><i>I</i></button>
+  <button data-act="ins" title="Underline / inserted  +text+"><u>U</u></button>
+  <button data-act="del" title="Strikethrough  -text-"><s>S</s></button>
+  <button data-act="mono" title="Monospace  {{text}}">{{ }}</button>
+  <button data-act="sup" title="Superscript  ^text^">x&sup2;</button>
+  <button data-act="sub" title="Subscript  ~text~">x&#8322;</button>
+  <button data-act="cite" title="Citation  ??text??">&#8220;&#8221;</button>
+  <select id="colorSel" title="Text colour  {color:name}text{color}">
+    <option value="">Colour</option>
+    <option>red</option><option>orange</option><option>green</option><option>blue</option><option>purple</option><option>gray</option><option>#0052cc</option>
+  </select>
+  <span class="sep"></span>
+  <select id="headSel" title="Heading  hN. ">
+    <option value="">Heading</option>
+    <option value="1">h1</option><option value="2">h2</option><option value="3">h3</option><option value="4">h4</option><option value="5">h5</option><option value="6">h6</option>
+    <option value="0">Normal</option>
+  </select>
+  <button data-act="ul" title="Bulleted list  * item">&bull; List</button>
+  <button data-act="ol" title="Numbered list  # item">1. List</button>
+  <button data-act="bq" title="Block quote  bq. ">bq.</button>
+  <button data-act="quote" title="Quote block  {quote}">{quote}</button>
+  <button data-act="code" title="Code block  {code:lang}">{code}</button>
+  <button data-act="noformat" title="Preformatted  {noformat}">{noformat}</button>
+  <button data-act="panel" title="Panel  {panel}">{panel}</button>
+  <button data-act="table" title="Table  ||head|| |cell|">Table</button>
+  <button data-act="link" title="Link  [label|url]  (Ctrl+K)">Link</button>
+  <button data-act="image" title="Image  !url!">Image</button>
+  <button data-act="hr" title="Horizontal rule  ----">&#8213;</button>
+  <span class="sep"></span>
+  <label title="Project keys that get auto-linked as issue links (Jira only links keys that exist)">Issue keys <input type="text" id="issueKeys" spellcheck="false"></label>
+  <label title="Base URL used for issue links in the preview">URL <input type="text" id="baseUrl" spellcheck="false"></label>
+  <span class="sep"></span>
+  <label><input type="checkbox" id="syncScroll" checked> Sync scroll</label>
+  <label title="Wrap long lines in code blocks (real Jira scrolls sideways instead)"><input type="checkbox" id="wrapCode" checked> Wrap code</label>
+  <span class="grow"></span>
+  <span id="status"></span>
+  <button id="btnSample" title="Load the sample that covers every syntax">Sample</button>
+  <button id="btnClear" title="Clear the editor">Clear</button>
+  <button id="btnCopy" title="Copy the raw Jira text">Copy</button>
+</div>
+<div id="main">
+  <textarea id="editor" spellcheck="false" placeholder="Write Jira wiki markup here..."></textarea>
+  <div id="divider" title="Drag to resize"></div>
+  <div id="previewWrap"><div id="preview" class="wiki"></div></div>
+</div>
+
+<!-- =====================================================================
+     CORE: Jira wiki markup -> HTML (no DOM access, also runs under Node)
+     ===================================================================== -->
+<script id="core">
+(function (root) {
+'use strict';
+
+var TOK_O = '\uE000', TOK_C = '\uE001';   // inline placeholder
+var TAG_O = '\uE002', TAG_C = '\uE003';   // formatting tag sentinel
+var BLK_O = '\uE004', BLK_C = '\uE005';   // block placeholder
+var BLK_SPLIT = /(\uE004\d+\uE005)/;
+
+function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function escAttr(s) { return esc(s).replace(/"/g, '&quot;'); }
+function reEsc(s) { return s.replace(/[\^$\\.*+?()[\]{}|\/]/g, '\\$&'); }
+
+/* ---------------------------------------------------------------- store */
+function put(ctx, html, block) {
+  ctx.store.push(html);
+  var i = ctx.store.length - 1;
+  return block ? BLK_O + i + BLK_C : TOK_O + i + TOK_C;
+}
+function resolve(ctx, html) {
+  var re = /[\uE000\uE004](\d+)[\uE001\uE005]/g, guard = 0;
+  while (/[\uE000\uE004]\d/.test(html) && guard++ < 60) {
+    html = html.replace(re, function (m, i) { return ctx.store[+i]; });
+  }
+  return html;
+}
+
+/* ---------------------------------------------------------- highlighter */
+function words(s) { var o = {}; s.split(/\s+/).forEach(function (w) { if (w) o[w] = 1; }); return o; }
+var LANGS = {
+  java: { kw: words('abstract assert boolean break byte case catch char class const continue default do double else enum extends final finally float for goto if implements import instanceof int interface long native new package private protected public return short static strictfp super switch synchronized this throw throws transient try void volatile while true false null'),
+          obj: words('String Object Integer Long Double Float Boolean Character List Map Set Exception System Math'), line: ['//'], block: ['/*', '*/'], str: ['"', "'"] },
+  javascript: { kw: words('break case catch class const continue debugger default delete do else export extends finally for function if import in instanceof let new of return super switch this throw try typeof var void while with yield async await true false null undefined'),
+          obj: words('String Number Boolean Object Array Date Math JSON Promise Map Set RegExp Error console window document'), line: ['//'], block: ['/*', '*/'], str: ['"', "'", '`'], dollar: true },
+  python: { kw: words('and as assert async await break class continue def del elif else except finally for from global if import in is lambda nonlocal not or pass raise return try while with yield None True False'),
+          both: words('None True False'),
+          obj: words('str int float bool list dict set tuple range len print open type isinstance enumerate zip map filter sorted min max sum abs any all repr id input super object bytes frozenset iter next reversed round hash format callable getattr setattr hasattr Exception ValueError TypeError KeyError RuntimeError AssertionError'), line: ['#'], str: ['"', "'"] },
+  bash: { kw: words('if then else elif fi for while until do done case esac in function select time return exit break continue local export readonly declare unset'),
+          obj: {}, line: ['#'], str: ['"', "'"], redSingle: true },
+  sql: { kw: words('select from where and or not in is null like between join inner left right outer full cross on group by order having limit offset insert into values update set delete create alter drop table index view database primary key foreign references unique default constraint distinct as union all case when then else end exists asc desc count sum avg min max'),
+         obj: {}, line: ['--'], block: ['/*', '*/'], str: ["'", '"'], ci: true },
+  c: { kw: words('auto break case char const continue default do double else enum extern float for goto if inline int long register restrict return short signed sizeof static struct switch typedef union unsigned void volatile while'), obj: {}, line: ['//'], block: ['/*', '*/'], str: ['"', "'"] },
+  cpp: { kw: words('alignas alignof auto bool break case catch char class const constexpr continue default delete do double else enum explicit export extern false float for friend goto if inline int long mutable namespace new noexcept nullptr operator private protected public register return short signed sizeof static struct switch template this throw true try typedef typename union unsigned using virtual void volatile while'), obj: words('std string vector map set'), line: ['//'], block: ['/*', '*/'], str: ['"', "'"] },
+  csharp: { kw: words('abstract as base bool break byte case catch char checked class const continue decimal default delegate do double else enum event explicit extern false finally fixed float for foreach goto if implicit in int interface internal is lock long namespace new null object operator out override params private protected public readonly ref return sbyte sealed short sizeof static string struct switch this throw true try typeof uint ulong unchecked unsafe ushort using var virtual void volatile while'), obj: {}, line: ['//'], block: ['/*', '*/'], str: ['"', "'"] },
+  go: { kw: words('break case chan const continue default defer else fallthrough for func go goto if import interface map package range return select struct switch type var true false nil'), obj: words('string int int64 uint float64 bool byte error'), line: ['//'], block: ['/*', '*/'], str: ['"', "'", '`'] },
+  ruby: { kw: words('alias and begin break case class def defined do else elsif end ensure false for if in module next nil not or redo rescue retry return self super then true undef unless until when while yield'), obj: {}, line: ['#'], str: ['"', "'"] },
+  perl: { kw: words('my our local sub if elsif else unless while until for foreach return last next redo use no package require do eval'), obj: {}, line: ['#'], str: ['"', "'"] },
+  php: { kw: words('abstract and array as break case catch class clone const continue declare default do echo else elseif empty extends final finally for foreach function global if implements include instanceof interface isset namespace new or print private protected public require return static switch throw trait try unset use var while true false null'), obj: {}, line: ['//', '#'], block: ['/*', '*/'], str: ['"', "'"] },
+  yaml: { kw: {}, obj: {}, line: ['#'], str: ['"', "'"] },
+  json: { kw: {}, obj: {}, line: [], str: ['"'] },
+  css: { kw: {}, obj: {}, line: [], block: ['/*', '*/'], str: ['"', "'"] },
+  xml: { xml: true, kw: {}, obj: {}, str: ['"', "'"] },
+  _generic: { kw: {}, obj: {}, line: ['//', '#'], block: ['/*', '*/'], str: ['"', "'"] }
+};
+var ALIAS = { js: 'javascript', jscript: 'javascript', ts: 'javascript', typescript: 'javascript', node: 'javascript', actionscript: 'javascript', as3: 'javascript',
+  htm: 'xml', html: 'xml', xhtml: 'xml', svg: 'xml', xsl: 'xml',
+  sh: 'bash', shell: 'bash', zsh: 'bash', ksh: 'bash', powershell: 'bash',
+  py: 'python', yml: 'yaml', 'c++': 'cpp', 'c#': 'csharp', cs: 'csharp', golang: 'go', rb: 'ruby', pl: 'perl',
+  groovy: 'java', scala: 'java', kotlin: 'java', swift: 'java', javafx: 'java', objc: 'c', 'objective-c': 'c',
+  text: 'none', plain: 'none', plaintext: 'none', txt: 'none', 'none': 'none' };
+
+function highlight(code, lang) {
+  var key = String(lang || 'java').toLowerCase().trim();
+  key = ALIAS[key] || key;
+  if (key === 'none') return esc(code);
+  var cfg = LANGS[key] || LANGS._generic;
+  var src = [], kinds = [];
+  function add(re, kind) { src.push('(' + re + ')'); kinds.push(kind); }
+  if (cfg.xml) {
+    add('<!--[\\s\\S]*?-->', 'comment');
+    add('<[?!\\/]?[A-Za-z_][^<>]*>', 'tag');
+  } else {
+    if (cfg.block) add(reEsc(cfg.block[0]) + '[\\s\\S]*?' + reEsc(cfg.block[1]), 'comment');
+    (cfg.line || []).forEach(function (p) {
+      add((p === '#' ? '(?<![^\\s])' : '') + reEsc(p) + '[^\\n]*\\n?', 'comment');
+    });
+  }
+  (cfg.str || []).forEach(function (q) {
+    var rq = reEsc(q);
+    add(rq + '[^' + rq + '\\n]*' + rq, (cfg.redSingle && q === "'") ? 'quote-red' : 'quote');
+  });
+  add(cfg.dollar ? '[A-Za-z_$][A-Za-z0-9_$]*' : '[A-Za-z_][A-Za-z0-9_]*', 'word');
+  var re = new RegExp(src.join('|'), 'g');
+  var out = '', last = 0, m;
+  while ((m = re.exec(code)) !== null) {
+    if (m[0] === '') { re.lastIndex++; continue; }
+    out += esc(code.slice(last, m.index));
+    var kind = null;
+    for (var g = 0; g < kinds.length; g++) { if (m[g + 1] !== undefined) { kind = kinds[g]; break; } }
+    var text = m[0];
+    if (kind === 'word') {
+      var w = cfg.ci ? text.toLowerCase() : text;
+      if (cfg.both && cfg.both[w]) out += '<span class="code-keyword"><span class="code-object">' + esc(text) + '</span></span>';
+      else if (cfg.kw[w]) out += '<span class="code-keyword">' + esc(text) + '</span>';
+      else if (cfg.obj[w]) out += '<span class="code-object">' + esc(text) + '</span>';
+      else out += esc(text);
+    } else {
+      out += '<span class="code-' + kind + '">' + esc(text) + '</span>';
+    }
+    last = m.index + text.length;
+  }
+  return out + esc(code.slice(last));
+}
+
+/* --------------------------------------------------------------- panels */
+function parseParams(str) {
+  var res = { _first: null };
+  if (!str) return res;
+  str.split('|').forEach(function (part, idx) {
+    var p = part.trim();
+    if (!p) return;
+    var eq = p.indexOf('=');
+    if (eq > 0) res[p.slice(0, eq).trim().toLowerCase()] = p.slice(eq + 1).trim();
+    else if (idx === 0) res._first = p;
+  });
+  return res;
+}
+function safeCss(v) { return /^[#\w(),.% -]+$/.test(v || '') ? v : ''; }
+function panelStyles(p) {
+  var outer = [], head = [], content = [];
+  var bs = safeCss(p.borderstyle), bc = safeCss(p.bordercolor), bw = safeCss(p.borderwidth), bg = safeCss(p.bgcolor), tbg = safeCss(p.titlebgcolor);
+  if (bg) outer.push('background-color: ' + bg);
+  if (bs) outer.push('border-style: ' + bs);
+  if (bc) outer.push('border-color: ' + bc);
+  outer.push('border-width: ' + (bw || '1px'));
+  head.push('border-bottom-width: ' + (bw || '1px'));
+  if (bs) head.push('border-bottom-style: ' + bs);
+  if (bc) head.push('border-bottom-color: ' + bc);
+  if (tbg) head.push('background-color: ' + tbg);
+  if (bg) content.push('background-color: ' + bg);
+  function j(a) { return a.length ? ' style="' + a.join(';') + ';"' : ''; }
+  return { outer: j(outer), head: j(head), content: j(content) };
+}
+function stripBody(body) {
+  return body.replace(/^[ \t]*\n/, '').replace(/\n[ \t]*$/, '\n').replace(/^\n+/, '');
+}
+function codePanel(paramStr, body) {
+  var p = parseParams(paramStr);
+  var lang = p.language || p._first || 'java';
+  var st = panelStyles(p);
+  var text = stripBody(body);
+  var title = p.title ? '<div class="codeHeader panelHeader"' + st.head + '><b>' + esc(p.title) + '</b></div>' : '';
+  var nums = '';
+  var lineNums = /^(true|yes|on)$/i.test(p.linenumbers || '');
+  if (lineNums) {
+    var n = text.replace(/\n$/, '').split('\n').length, arr = [];
+    for (var i = 1; i <= n; i++) arr.push(i);
+    nums = '<pre class="line-numbers">' + arr.join('\n') + '</pre>';
+  }
+  var cls = 'code-' + String(lang).toLowerCase().replace(/[^\w+#-]/g, '');
+  return '<div class="code panel"' + st.outer + '>' + title +
+    '<div class="codeContent panelContent' + (lineNums ? ' has-lines' : '') + '"' + st.content + '>' + nums +
+    '<pre class="' + cls + (lineNums ? ' code-body' : '') + '">' + highlight(text.replace(/\n$/, ''), lang) + '</pre></div></div>';
+}
+function noformatPanel(paramStr, body) {
+  var p = parseParams(paramStr);
+  var text = stripBody(body).replace(/\n$/, '');
+  if (/^(true|yes|on)$/i.test(p.nopanel || '')) return '<pre>' + esc(text) + '</pre>';
+  var st = panelStyles(p);
+  var title = p.title ? '<div class="preformattedHeader panelHeader"' + st.head + '><b>' + esc(p.title) + '</b></div>' : '';
+  return '<div class="preformatted panel"' + st.outer + '>' + title +
+    '<div class="preformattedContent panelContent"' + st.content + '><pre>' + esc(text) + '</pre></div></div>';
+}
+function panelMacro(ctx, paramStr, body) {
+  var p = parseParams(paramStr);
+  var st = panelStyles(p);
+  var title = p.title ? '<div class="panelHeader"' + st.head + '><b>' + esc(p.title) + '</b></div>' : '';
+  return '<div class="panel"' + st.outer + '>' + title + '<div class="panelContent"' + st.content + '>\n' + renderDoc(ctx, body) + '\n</div></div>';
+}
+
+function macros(ctx, text) {
+  text = text.replace(/(?<!\\)\{(code|noformat)(?::([^}\n]*))?\}([\s\S]*?)\{\1\}/g, function (m, name, params, body) {
+    return put(ctx, name === 'code' ? codePanel(params, body) : noformatPanel(params, body), true);
+  });
+  text = text.replace(/(?<!\\)\{panel(?::([^}\n]*))?\}([\s\S]*?)\{panel\}/g, function (m, params, body) {
+    return put(ctx, panelMacro(ctx, params, body), true);
+  });
+  text = text.replace(/(?<!\\)\{quote\}([\s\S]*?)\{quote\}/g, function (m, body) {
+    return put(ctx, '<blockquote>\n' + renderDoc(ctx, body) + '</blockquote>', true);
+  });
+  return text;
+}
+
+/* ---------------------------------------------------------------- links */
+var SCHEME = /^(?:https?|ftps?|irc|news|nntp|telnet|file|mailto):/i;
+var ISSUE_KEY = /^[A-Z][A-Z0-9_]*-\d+$/;
+
+function issueHref(ctx, key) {
+  var base = (ctx.opts.baseUrl || '').replace(/\/+$/, '');
+  return base ? base + '/browse/' + encodeURIComponent(key) : '#';
+}
+function issueLink(ctx, key, label) {
+  return '<a href="' + escAttr(issueHref(ctx, key)) + '" class="issue-link" data-issue-key="' + escAttr(key) + '">' + label + '</a>';
+}
+
+function linkHtml(ctx, body) {
+  var parts = body.split('|');
+  var label = null, target, tip = '';
+  if (parts.length >= 2) { label = parts[0]; target = parts[1].trim(); if (parts.length >= 3) tip = parts.slice(2).join('|'); }
+  else target = body.trim();
+  if (!target) return null;
+  var lab = function (def) { return (label !== null && label.trim() !== '') ? inline(ctx, label, true) : esc(def); };
+  var tipAttr = tip ? ' title="' + escAttr(tip) + '"' : '';
+  var m;
+  if (target.charAt(0) === '~') {
+    var user = target.slice(1).replace(/^accountid:/, '');
+    return '<a href="#" class="user-hover" rel="' + escAttr(user) + '">' + lab(user) + '</a>';
+  }
+  if (target.charAt(0) === '#') {
+    var an = target.slice(1);
+    return '<a href="#' + escAttr(an) + '"' + tipAttr + '>' + lab(an) + '</a>';
+  }
+  if (target.charAt(0) === '^') {
+    var fn = target.slice(1);
+    return '<a href="#" class="attachment-link" title="' + escAttr(tip || 'Attachment (not available in the preview)') + '">' + lab(fn) + '</a>';
+  }
+  if (SCHEME.test(target)) {
+    var isMail = /^mailto:/i.test(target);
+    var shown = isMail ? target.replace(/^mailto:/i, '') : target;
+    return '<a href="' + escAttr(target) + '" class="external-link" ' + (isMail ? '' : 'target="_blank" ') + 'rel="nofollow noopener"' + tipAttr + '>' + lab(shown) + '</a>';
+  }
+  if (ISSUE_KEY.test(target)) return issueLink(ctx, target, lab(target));
+  if ((m = target.match(/^(.+)#(.+)$/)) && SCHEME.test(m[1])) return null;
+  return null;
+}
+
+function imageHtml(ctx, body) {
+  var bar = body.indexOf('|');
+  var name = (bar >= 0 ? body.slice(0, bar) : body);
+  var attrStr = bar >= 0 ? body.slice(bar + 1) : '';
+  if (!name || name !== name.trim()) return null;
+  var remote = /^https?:\/\/\S+$/i.test(name);
+  if (!remote && !/[.\/]/.test(name)) return null;
+  var attrs = {}, thumb = false;
+  attrStr.split(',').forEach(function (a) {
+    a = a.trim();
+    if (!a) return;
+    var eq = a.indexOf('=');
+    if (eq < 0) { if (a.toLowerCase() === 'thumbnail') thumb = true; return; }
+    attrs[a.slice(0, eq).trim().toLowerCase()] = a.slice(eq + 1).trim();
+  });
+  var html = '';
+  if (remote) {
+    var at = ' src="' + escAttr(name) + '" data-jira-img="1" data-name="' + escAttr(name) + '" style="border: ' + (/^\d+$/.test(attrs.border || '') ? attrs.border : '0') + 'px solid black"';
+    ['width', 'height', 'hspace', 'vspace'].forEach(function (k) { if (/^\d+%?$/.test(attrs[k] || '')) at += ' ' + k + '="' + attrs[k] + '"'; });
+    if (/^(left|right|top|middle|bottom)$/i.test(attrs.align || '')) at += ' align="' + attrs.align.toLowerCase() + '"';
+    if (attrs.title) at += ' title="' + escAttr(attrs.title) + '"';
+    at += ' alt="' + escAttr(attrs.alt || name) + '"';
+    html = '<span class="image-wrap"><img' + at + (thumb ? ' class="thumbnail"' : '') + '/></span>';
+  } else {
+    html = '<span class="image-placeholder" title="Attached images are not available in the preview">&#128444; ' + esc(name) + (thumb ? ' (thumbnail)' : '') + '</span>';
+  }
+  return html;
+}
+
+/* --------------------------------------------------------------- protect */
+function protect(ctx, t, noAuto) {
+  // {{monospace}} (content may not contain a closing brace, same as Jira)
+  t = t.replace(/(?<!\\)\{\{((?:[^}\n]|\n(?![ \t]*\n))+)\}\}/g, function (m, inner) {
+    return put(ctx, '<tt>' + inline(ctx, inner) + '</tt>');
+  });
+  // [links]
+  t = t.replace(/(?<!\\)\[([^\[\]\n]+)\]/g, function (m, body) {
+    var h = linkHtml(ctx, body);
+    if (h === null) h = '<span class="error">&#91;' + esc(body) + '&#93;</span>';
+    return put(ctx, h);
+  });
+  // !images!
+  t = t.replace(/(?<!\\)!([^\s!|\n][^!\n]*?)!/g, function (m, body) {
+    var h = imageHtml(ctx, body);
+    return h === null ? m : put(ctx, h);
+  });
+  // \\ line break and \X escapes
+  t = t.replace(/\\\\|\\([*_?\-+^~{}\[\]|!#()])/g, function (m, ch) {
+    return put(ctx, ch ? '&#' + ch.charCodeAt(0) + ';' : '<br/>');
+  });
+  // bare URLs
+  if (!noAuto) t = t.replace(/(?<![\p{L}\p{N}_@\/=:."'-])((?:https?|ftps?):\/\/[^\s<>"\uE000-\uE005|\[\]]+)/gu, function (m, u) {
+    var tail = '';
+    var mm = u.match(/[.,;:!?'"]+$/);
+    if (mm) { tail = mm[0]; u = u.slice(0, -tail.length); }
+    if (u.slice(-1) === ')' && u.indexOf('(') < 0) { tail = ')' + tail; u = u.slice(0, -1); }
+    if (!/^\w+:\/\/./.test(u)) return m;
+    return put(ctx, '<a href="' + escAttr(u) + '" class="external-link" target="_blank" rel="nofollow noopener">' + esc(u) + '</a>') + tail;
+  });
+  // {anchor:name}
+  t = t.replace(/(?<!\\)\{anchor:([^}\n]+)\}/g, function (m, n) {
+    return put(ctx, '<a name="' + escAttr(n.trim()) + '"></a>');
+  });
+  return t;
+}
+
+/* ---------------------------------------------------------------- inline */
+var EMO = {
+  ':)': ['\u{1F642}', 'smile'], ':(': ['\u{1F641}', 'sad'], ':P': ['\u{1F61B}', 'tongue'], ':D': ['\u{1F603}', 'biggrin'], ';)': ['\u{1F609}', 'wink'],
+  '(y)': ['\u{1F44D}', 'thumbs up'], '(n)': ['\u{1F44E}', 'thumbs down'], '(i)': ['\u2139\uFE0F', 'information'],
+  '(/)': ['\u2705', 'check'], '(x)': ['\u274C', 'error'], '(!)': ['\u26A0\uFE0F', 'warning'],
+  '(+)': ['\u2795', 'plus'], '(-)': ['\u2796', 'minus'], '(?)': ['\u2753', 'question'],
+  '(on)': ['\u{1F4A1}', 'light on'], '(off)': ['<span style="opacity:.35">\u{1F4A1}</span>', 'light off'],
+  '(*)': ['<span style="color:#f5b800">\u2605</span>', 'star'], '(*y)': ['<span style="color:#f5b800">\u2605</span>', 'star yellow'],
+  '(*r)': ['<span style="color:#d04437">\u2605</span>', 'star red'], '(*g)': ['<span style="color:#14892c">\u2605</span>', 'star green'],
+  '(*b)': ['<span style="color:#0052cc">\u2605</span>', 'star blue'],
+  '(flag)': ['\u{1F6A9}', 'flag'], '(flagoff)': ['<span style="opacity:.35">\u{1F6A9}</span>', 'flag off']
+};
+var EMO_RE = /(^|[\s(])(:\)|:\(|:P|:D|;\)|\((?:y|n|i|x|!|\/|\+|-|\?|on|off|\*[rgby]?|flag|flagoff)\))(?=$|[\s.,;!?)])/g;
+
+var MARKERS = [['*', 'b'], ['_', 'em'], ['??', 'cite'], ['-', 'del'], ['+', 'ins']];
+var MARKER_RES = MARKERS.map(function (mk) {
+  var ch = mk[0];
+  var m = ch.split('').map(function (c) { return reEsc(c); }).join('');
+  var cc = ch.charAt(0) === '-' ? '\\-' : ch.charAt(0);
+  return {
+    tag: mk[1],
+    re: new RegExp('(?<![\\p{L}\\p{N}_' + cc + '])' + m + '(?![\\s' + cc + '])((?:[^\\n]|\\n(?![ \\t]*\\n))*?[^\\s' + cc + '])' + m + '(?![\\p{L}\\p{N}_])', 'gu')
+  };
+});
+function tag(name, inner) { return TAG_O + name + TAG_C + inner + TAG_O + '/' + name + TAG_C; }
+
+function format(ctx, t) {
+  t = esc(t);
+  // {color:x}...{color}
+  t = t.replace(/\{color:([^}\n]+)\}([\s\S]*?)\{color\}/g, function (m, color, inner) {
+    var c = safeCss(color.trim());
+    if (!c) return m;
+    return put(ctx, '<font color="' + escAttr(c) + '">') + inner.replace(/\s+$/, '') + put(ctx, '</font>');
+  });
+  // dashes
+  t = t.replace(/(^|\s)---(?=\s|$)/g, '$1\u2014').replace(/(^|\s)--(?=\s|$)/g, '$1\u2013');
+  // text effects
+  MARKER_RES.forEach(function (mk) { t = t.replace(mk.re, function (m, inner) { return tag(mk.tag, inner); }); });
+  t = t.replace(/\^([^\s^]+)\^/g, function (m, inner) { return tag('sup', inner); });
+  t = t.replace(/~([^\s~]+)~/g, function (m, inner) { return tag('sub', inner); });
+  // emoticons
+  t = t.replace(EMO_RE, function (m, pre, emo) {
+    var e = EMO[emo];
+    return pre + put(ctx, '<span class="emoticon" title="' + escAttr(e[1]) + '">' + e[0] + '</span>');
+  });
+  // issue keys
+  if (ctx.issueRe) {
+    t = t.replace(ctx.issueRe, function (m, key) { return put(ctx, issueLink(ctx, key, esc(key))); });
+  }
+  t = t.replace(/\n/g, '<br/>\n');
+  return t.replace(/\uE002([^\uE003]*)\uE003/g, '<$1>');
+}
+function inline(ctx, text, noAuto) { return format(ctx, protect(ctx, text, noAuto)); }
+
+// format a text unit that may contain block placeholders
+function formatBlocks(ctx, text, wrapP) {
+  var parts = text.split(BLK_SPLIT), out = [];
+  parts.forEach(function (seg) {
+    if (BLK_SPLIT.test(seg) && /^\uE004\d+\uE005$/.test(seg)) { out.push({ block: true, html: seg }); return; }
+    var s = seg.replace(/[ \t]+\n/g, '\n').replace(/^\s+|\s+$/g, '');
+    if (!s) return;
+    out.push({ block: false, html: format(ctx, s) });
+  });
+  if (wrapP) return out.map(function (o) { return o.block ? o.html : '<p>' + o.html + '</p>'; }).join('\n\n');
+  return out.map(function (o) { return o.html; }).join('\n');
+}
+
+/* ---------------------------------------------------------------- blocks */
+var RE_HR = /^\s*-{4,}\s*$/;
+var RE_BQ = /^bq\.\s+(.*)$/;
+var RE_TABLE = /^\s*\|/;
+var RE_LIST = /^\s*([*#-]+)\s+(.*)$/;
+
+function listMatch(line) {
+  var m = line.match(RE_LIST);
+  if (!m) return null;
+  if (/^-+$/.test(m[1]) && m[1].length > 1) return null;
+  return m;
+}
+function isBlockStart(line) {
+  return RE_HR.test(line) || RE_BQ.test(line) || RE_TABLE.test(line) || !!listMatch(line);
+}
+
+function encName(s) {
+  return encodeURIComponent(s).replace(/[!'()*]/g, function (c) { return '%' + c.charCodeAt(0).toString(16).toUpperCase(); });
+}
+function headingHtml(ctx, level, raw) {
+  var name = encName(raw.replace(/[\s_*-]+/g, ''));
+  return '<h' + level + '><a name="' + escAttr(name) + '"></a>' + inline(ctx, raw) + '</h' + level + '>';
+}
+
+function renderList(ctx, items) {
+  var html = '', stack = [];
+  function open(mark) {
+    var tagName = mark === '#' ? 'ol' : 'ul';
+    html += '<' + tagName + (mark === '-' ? ' class="alternate" type="square"' : '') + '>';
+    stack.push({ mark: mark, tag: tagName });
+  }
+  function close() { var s = stack.pop(); html += '</li></' + s.tag + '>'; }
+  items.forEach(function (it) {
+    var marks = it.marks, n = marks.length, k = 0;
+    while (k < stack.length && k < n && stack[k].mark === marks[k]) k++;
+    if (k === n) {
+      while (stack.length > n) close();
+      html += '</li><li>';
+    } else {
+      while (stack.length > k) close();
+      for (var j = k; j < n; j++) { open(marks[j]); html += '<li>'; }
+    }
+    html += formatBlocks(ctx, it.text, false);
+  });
+  while (stack.length) close();
+  return html;
+}
+
+function splitRow(row) {
+  var parts = row.replace(/^\s+|\s+$/g, '').split(/(\|\|?)/), cells = [];
+  for (var i = 1; i < parts.length; i += 2) {
+    var content = parts[i + 1] === undefined ? '' : parts[i + 1];
+    if (i + 1 === parts.length - 1 && content.trim() === '') break;
+    cells.push({ th: parts[i] === '||', text: content });
+  }
+  return cells;
+}
+function cellHtml(ctx, text) {
+  var t = text.replace(/^\s+|\s+$/g, '');
+  if (!t) return '&nbsp;';
+  var blocks = parseBlocks(ctx, t);
+  if (blocks.length === 1 && blocks[0].t === 'p') return blocks[0].inner;
+  return blocks.map(function (b) { return b.html; }).join('\n');
+}
+function renderTable(ctx, rows) {
+  var html = "<div class='table-wrap'>\n<table class='confluenceTable'><tbody>\n";
+  rows.forEach(function (row) {
+    html += '<tr>\n';
+    splitRow(row).forEach(function (c) {
+      var inner = cellHtml(ctx, c.text);
+      html += c.th ? "<th class='confluenceTh'>" + inner + '</th>\n' : "<td class='confluenceTd'>" + inner + '</td>\n';
+    });
+    html += '</tr>\n';
+  });
+  return html + '</tbody></table>\n</div>';
+}
+
+function parseBlocks(ctx, text) {
+  var lines = text.split('\n'), out = [], para = [], i = 0, m;
+  function flush() {
+    if (!para.length) return;
+    var raw = para.join('\n');
+    para = [];
+    var inner = formatBlocks(ctx, raw, false);
+    out.push({ t: 'p', html: formatBlocks(ctx, raw, true), inner: inner });
+  }
+  while (i < lines.length) {
+    var line = lines[i];
+    if (/^\s*$/.test(line)) { flush(); i++; continue; }
+    if (RE_HR.test(line)) { flush(); i++; out.push({ t: 'hr', html: '<hr />' }); continue; }
+    if ((m = line.match(RE_BQ))) {
+      flush(); i++;
+      var q = [m[1]];
+      while (i < lines.length && !/^\s*$/.test(lines[i])) q.push(lines[i++]);
+      out.push({ t: 'bq', html: '<blockquote>\n' + formatBlocks(ctx, q.join('\n'), true) + '</blockquote>' });
+      continue;
+    }
+    if (RE_TABLE.test(line)) {
+      flush();
+      var rows = [];
+      while (i < lines.length && RE_TABLE.test(lines[i])) {
+        var row = lines[i++];
+        while (!/\|\s*$/.test(row) && i < lines.length && !/^\s*$/.test(lines[i]) && !RE_TABLE.test(lines[i])) row += '\n' + lines[i++];
+        rows.push(row);
+      }
+      out.push({ t: 'table', html: renderTable(ctx, rows) });
+      continue;
+    }
+    if (listMatch(line)) {
+      flush();
+      var items = [];
+      while (i < lines.length) {
+        var lm = listMatch(lines[i]);
+        if (lm) { items.push({ marks: lm[1], text: lm[2] }); i++; continue; }
+        if (/^\s*$/.test(lines[i]) || isBlockStart(lines[i])) break;
+        items[items.length - 1].text += '\n' + lines[i++];
+      }
+      out.push({ t: 'list', html: renderList(ctx, items) });
+      continue;
+    }
+    para.push(line);
+    i++;
+  }
+  flush();
+  return out;
+}
+
+function renderDoc(ctx, text) {
+  text = macros(ctx, text);
+  // headings are resolved from the raw line (Jira builds the anchor name from the raw text);
+  // as block placeholders they behave like Jira: a heading right below a list item stays inside that item
+  text = text.replace(/^h([1-6])\.[ \t]+(.*)$/gm, function (m, lvl, raw) {
+    return put(ctx, headingHtml(ctx, lvl, raw.replace(/\s+$/, '')), true);
+  });
+  text = protect(ctx, text);
+  return parseBlocks(ctx, text).map(function (b) { return b.html; }).join('\n\n');
+}
+
+function render(text, opts) {
+  opts = opts || {};
+  var ctx = { store: [], opts: opts, issueRe: null };
+  var keys = (opts.issueKeys || []).map(function (k) { return String(k).trim().toUpperCase(); }).filter(function (k) { return /^[A-Z][A-Z0-9_]*$/.test(k); });
+  if (keys.length) ctx.issueRe = new RegExp('(?<![\\p{L}\\p{N}_-])((?:' + keys.join('|') + ')-\\d+)(?![\\p{L}\\p{N}_])', 'gu');
+  text = String(text).replace(/\r\n?/g, '\n').replace(/[\uE000-\uE005]/g, '');
+  return resolve(ctx, renderDoc(ctx, text));
+}
+
+root.JiraWiki = { render: render, highlight: highlight, encName: encName };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<!-- =====================================================================
+     APP: editor, toolbar, preview, persistence
+     ===================================================================== -->
+<script id="app">
+(function () {
+'use strict';
+
+var SAMPLE = String.raw`h1. Jira wiki markup sample
+This text is the sample that covers every syntax. Edit it on the left and the right side updates live.
+
+h2. Text effects
+*bold*, _italic_, +underlined (inserted)+, -strikethrough-, ??citation??, {{monospaced}}, ^superscript^ and ~subscript~.
+Chemistry: H~2~O, maths: E=mc^2^. Combined: *_bold italic_* and *{{bold mono}}*.
+{color:red}Red text{color}, {color:#0052cc}hex blue text{color}, {color:green}*bold green*{color}.
+Escaped markup: \*not bold\*, \{\{not mono\}\}, \[not a link\]
+A line break with two backslashes:\\second line.
+Dashes: an em dash --- and an en dash -- between words.
+
+bq. A one-paragraph block quote.
+
+{quote}
+A quote block that can span
+several paragraphs.
+
+Second paragraph of the quote.
+{quote}
+
+h2. Headings
+h1. Heading 1
+h2. Heading 2
+h3. Heading 3
+h4. Heading 4
+h5. Heading 5
+h6. Heading 6
+
+----
+
+h2. Lists
+* bullet one
+* bullet two
+** nested bullet
+*** deeper bullet
+* bullet three
+continuation line of bullet three
+
+# numbered one
+# numbered two
+#* bullet inside numbered
+#* another one
+# numbered three
+## nested numbered
+
+- dash list item
+- another dash item
+
+h2. Tables
+||Heading 1||Heading 2||Heading 3||
+|Cell A1|*bold* cell|{{mono}} cell|
+|Cell B1| |[Link|https://example.com]|
+|* list in cell
+* second item|multi-line
+cell text|{color:red}red{color}|
+
+h2. Links
+External: [https://example.com] or with label: [Example|https://example.com]
+Bare URL: https://example.com/path?x=1&y=2
+Email: [mailto:someone@example.com]
+Mention: [~username]
+Anchor link: [#Headings] and an anchor {anchor:here} placed here, linked by [Go here|#here]
+Attachment: [^report.pdf]
+Issue key in brackets: [ABC-123]
+Unresolved link (Jira shows it as an error): [not a link, really]
+
+h2. Images
+!https://www.atlassian.com/favicon.ico!
+Attached image (placeholder in the preview): !screenshot.png|thumbnail!
+
+h2. Code and preformatted
+{code:java|title=Hello.java|linenumbers=true}
+// a comment
+public class Hello {
+    public static void main(String[] args) {
+        System.out.println("Hello, world");
+    }
+}
+{code}
+
+{code:python}
+# python example
+def add(a, b):
+    return a + b if a is not None else None
+{code}
+
+{code:json}
+{ "name": "jira", "tags": ["a", "b"], "ok": true }
+{code}
+
+{code:xml}
+<root attr="1"><child>text</child></root>
+{code}
+
+{noformat}
+preformatted text, so *no* _formatting_ is done here
+    indentation is kept
+{noformat}
+
+h2. Panels
+{panel}
+A plain panel with *formatted* text.
+{panel}
+
+{panel:title=My Title|borderStyle=dashed|borderColor=#ccc|titleBGColor=#F7D6C1|bgColor=#FFFFCE}
+a block of text surrounded with a *panel*
+yet _another_ line
+{panel}
+
+h2. Emoticons
+:) :( :P :D ;) (y) (n) (i) (/) (x) (!) (+) (-) (?) (on) (off) (*) (*r) (*g) (*b) (flag)
+`;
+
+var $ = function (id) { return document.getElementById(id); };
+var ed = $('editor'), pv = $('preview'), pvWrap = $('previewWrap');
+var KEY_TEXT = 'jira-preview:text', KEY_KEYS = 'jira-preview:issueKeys', KEY_URL = 'jira-preview:baseUrl', KEY_W = 'jira-preview:width', KEY_SYNC = 'jira-preview:sync';
+var store = {
+  get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+  set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+};
+
+/* ---------- settings ---------- */
+var savedKeys = store.get(KEY_KEYS), savedUrl = store.get(KEY_URL);
+$('issueKeys').value = savedKeys !== null ? savedKeys : 'ABC';
+$('baseUrl').value = savedUrl !== null ? savedUrl : 'https://jira.example.com';
+$('syncScroll').checked = store.get(KEY_SYNC) !== '0';
+$('wrapCode').checked = store.get('jira-preview:wrap') !== '0';
+document.body.classList.toggle('wrapcode', $('wrapCode').checked);
+var savedW = store.get(KEY_W);
+if (savedW) ed.style.width = savedW + 'px';
+
+function opts() {
+  return { issueKeys: $('issueKeys').value.split(/[\s,;]+/).filter(Boolean), baseUrl: $('baseUrl').value.trim() };
+}
+
+/* ---------- render ---------- */
+var pending = false;
+function render() {
+  pending = false;
+  var html;
+  try { html = window.JiraWiki.render(ed.value, opts()); }
+  catch (e) { html = '<pre class="error">Render error: ' + String(e && e.message || e).replace(/</g, '&lt;') + '</pre>'; }
+  pv.innerHTML = html;
+  Array.prototype.forEach.call(pv.querySelectorAll('img[data-jira-img]'), function (img) {
+    img.addEventListener('error', function () {
+      var s = document.createElement('span');
+      s.className = 'image-placeholder';
+      s.title = 'Image could not be loaded: ' + (img.getAttribute('data-name') || '');
+      s.textContent = '\uD83D\uDDBC ' + (img.getAttribute('data-name') || 'image');
+      if (img.parentNode) img.parentNode.replaceChild(s, img);
+    });
+  });
+  if (active === 'ed') syncFromEditor();
+}
+function scheduleRender() { if (!pending) { pending = true; requestAnimationFrame(render); } }
+
+var saveTimer = null;
+function scheduleSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(function () { store.set(KEY_TEXT, ed.value); flash('Saved'); }, 300);
+}
+var flashTimer = null;
+function flash(msg) {
+  $('status').textContent = msg;
+  clearTimeout(flashTimer);
+  flashTimer = setTimeout(function () { $('status').textContent = ''; }, 1200);
+}
+
+ed.addEventListener('input', function () { scheduleRender(); scheduleSave(); });
+['issueKeys', 'baseUrl'].forEach(function (id) {
+  $(id).addEventListener('input', function () { store.set(id === 'issueKeys' ? KEY_KEYS : KEY_URL, $(id).value); scheduleRender(); });
+});
+$('syncScroll').addEventListener('change', function () { store.set(KEY_SYNC, this.checked ? '1' : '0'); });
+$('wrapCode').addEventListener('change', function () {
+  store.set('jira-preview:wrap', this.checked ? '1' : '0');
+  document.body.classList.toggle('wrapcode', this.checked);
+});
+
+/* ---------- preview link behaviour ---------- */
+pv.addEventListener('click', function (e) {
+  var a = e.target.closest ? e.target.closest('a') : null;
+  if (!a) return;
+  var href = a.getAttribute('href');
+  if (href === '#') { e.preventDefault(); return; }
+  if (href && href.charAt(0) === '#') {
+    e.preventDefault();
+    var raw = href.slice(1), dec = raw;
+    try { dec = decodeURIComponent(raw); } catch (err) {}
+    var enc = window.JiraWiki.encName(raw);
+    var hit = Array.prototype.find.call(pv.querySelectorAll('a[name]'), function (n) {
+      var nm = n.getAttribute('name');
+      return nm === raw || nm === dec || nm === enc;
+    });
+    if (hit) hit.scrollIntoView({ block: 'start' });
+  }
+});
+
+/* ---------- scroll sync ---------- */
+var active = 'ed';
+['wheel', 'mousedown', 'touchstart', 'keydown'].forEach(function (ev) {
+  ed.addEventListener(ev, function () { active = 'ed'; }, { passive: true });
+  pvWrap.addEventListener(ev, function () { active = 'pv'; }, { passive: true });
+});
+function ratio(el) { var max = el.scrollHeight - el.clientHeight; return max > 0 ? el.scrollTop / max : 0; }
+function syncFromEditor() {
+  if (!$('syncScroll').checked) return;
+  pvWrap.scrollTop = ratio(ed) * (pvWrap.scrollHeight - pvWrap.clientHeight);
+}
+ed.addEventListener('scroll', function () { if (active === 'ed') syncFromEditor(); });
+pvWrap.addEventListener('scroll', function () {
+  if (active !== 'pv' || !$('syncScroll').checked) return;
+  ed.scrollTop = ratio(pvWrap) * (ed.scrollHeight - ed.clientHeight);
+});
+
+/* ---------- divider ---------- */
+(function () {
+  var div = $('divider'), dragging = false;
+  div.addEventListener('mousedown', function (e) { dragging = true; div.classList.add('drag'); e.preventDefault(); });
+  window.addEventListener('mousemove', function (e) {
+    if (!dragging) return;
+    var rect = $('main').getBoundingClientRect();
+    var w = Math.max(120, Math.min(rect.width - 126, e.clientX - rect.left));
+    ed.style.width = w + 'px';
+  });
+  window.addEventListener('mouseup', function () {
+    if (!dragging) return;
+    dragging = false; div.classList.remove('drag');
+    store.set(KEY_W, parseInt(ed.style.width, 10));
+  });
+})();
+
+/* ---------- editing helpers ---------- */
+function replaceRange(start, end, text, selStart, selEnd) {
+  ed.focus();
+  ed.setSelectionRange(start, end);
+  var ok = false;
+  try { ok = document.execCommand('insertText', false, text); } catch (e) {}
+  if (!ok) { ed.setRangeText(text, start, end, 'end'); ed.dispatchEvent(new Event('input', { bubbles: true })); }
+  if (selStart !== undefined) ed.setSelectionRange(selStart, selEnd === undefined ? selStart : selEnd);
+}
+function wrap(pre, post, placeholder) {
+  var s = ed.selectionStart, e = ed.selectionEnd, sel = ed.value.slice(s, e);
+  var inner = sel || placeholder || '';
+  replaceRange(s, e, pre + inner + post, s + pre.length, s + pre.length + inner.length);
+}
+function lineRange() {
+  var v = ed.value, s = ed.selectionStart, e = ed.selectionEnd;
+  var ls = v.lastIndexOf('\n', s - 1) + 1;
+  var le = v.indexOf('\n', e > s && v.charAt(e - 1) === '\n' ? e - 1 : e);
+  if (le < 0) le = v.length;
+  return [ls, le];
+}
+function prefixLines(prefix, stripRe) {
+  var r = lineRange(), block = ed.value.slice(r[0], r[1]);
+  var lines = block.split('\n');
+  var allHave = lines.every(function (l) { return !l.trim() || l.indexOf(prefix) === 0; });
+  var out = lines.map(function (l) {
+    if (!l.trim()) return l;
+    if (allHave && !stripRe) return l.slice(prefix.length);
+    var base = stripRe ? l.replace(stripRe, '') : l;
+    return prefix + base;
+  });
+  var text = out.join('\n');
+  replaceRange(r[0], r[1], text, r[0], r[0] + text.length);
+}
+function insertBlock(pre, post, placeholder) {
+  var s = ed.selectionStart, e = ed.selectionEnd, v = ed.value;
+  var sel = v.slice(s, e) || placeholder;
+  var lead = (s > 0 && v.charAt(s - 1) !== '\n') ? '\n' : '';
+  var trail = (e < v.length && v.charAt(e) !== '\n') ? '\n' : '';
+  var text = lead + pre + sel + post + trail;
+  var ss = s + lead.length + pre.length;
+  replaceRange(s, e, text, ss, ss + sel.length);
+}
+
+var ACTIONS = {
+  bold: function () { wrap('*', '*', 'bold'); },
+  italic: function () { wrap('_', '_', 'italic'); },
+  ins: function () { wrap('+', '+', 'underline'); },
+  del: function () { wrap('-', '-', 'strike'); },
+  mono: function () { wrap('{{', '}}', 'monospace'); },
+  sup: function () { wrap('^', '^', 'sup'); },
+  sub: function () { wrap('~', '~', 'sub'); },
+  cite: function () { wrap('??', '??', 'citation'); },
+  ul: function () { prefixLines('* '); },
+  ol: function () { prefixLines('# '); },
+  bq: function () { prefixLines('bq. '); },
+  quote: function () { insertBlock('{quote}\n', '\n{quote}', 'quoted text'); },
+  code: function () { insertBlock('{code:java}\n', '\n{code}', 'code here'); },
+  noformat: function () { insertBlock('{noformat}\n', '\n{noformat}', 'preformatted text'); },
+  panel: function () { insertBlock('{panel:title=Title}\n', '\n{panel}', 'panel text'); },
+  table: function () {
+    var s = ed.selectionStart, e = ed.selectionEnd, v = ed.value;
+    var lead = (s > 0 && v.charAt(s - 1) !== '\n') ? '\n' : '';
+    var t = lead + '||Heading 1||Heading 2||\n|Cell 1|Cell 2|\n|Cell 3|Cell 4|\n';
+    replaceRange(s, e, t, s + lead.length + 2, s + lead.length + 11);
+  },
+  link: function () {
+    var s = ed.selectionStart, e = ed.selectionEnd, sel = ed.value.slice(s, e);
+    if (/^https?:\/\//i.test(sel)) { var t = '[' + sel + ']'; replaceRange(s, e, t, s + t.length); return; }
+    var label = sel || 'label', t2 = '[' + label + '|https://]';
+    var urlStart = s + label.length + 2;
+    replaceRange(s, e, t2, urlStart, urlStart + 8);
+  },
+  image: function () { wrap('!', '!', 'https://example.com/image.png'); },
+  hr: function () { insertBlock('----', '', ''); }
+};
+Array.prototype.forEach.call(document.querySelectorAll('#bar button[data-act]'), function (b) {
+  b.addEventListener('mousedown', function (e) { e.preventDefault(); });
+  b.addEventListener('click', function () { ACTIONS[b.getAttribute('data-act')](); });
+});
+$('colorSel').addEventListener('change', function () {
+  var c = this.value; this.selectedIndex = 0;
+  if (c) { ed.focus(); wrap('{color:' + c + '}', '{color}', 'colored text'); }
+});
+$('headSel').addEventListener('change', function () {
+  var n = this.value; this.selectedIndex = 0;
+  if (n === '') return;
+  ed.focus();
+  prefixLines(n === '0' ? '' : 'h' + n + '. ', /^h[1-6]\.\s+/);
+});
+ed.addEventListener('keydown', function (e) {
+  if (!(e.ctrlKey || e.metaKey) || e.altKey) return;
+  var k = e.key.toLowerCase();
+  if (k === 'b') { e.preventDefault(); ACTIONS.bold(); }
+  else if (k === 'i') { e.preventDefault(); ACTIONS.italic(); }
+  else if (k === 'k') { e.preventDefault(); ACTIONS.link(); }
+});
+
+/* ---------- buttons ---------- */
+$('btnCopy').addEventListener('click', function () {
+  var txt = ed.value;
+  function done() { flash('Copied'); }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(txt).then(done, function () { fallback(); });
+  } else fallback();
+  function fallback() {
+    var cur = [ed.selectionStart, ed.selectionEnd];
+    ed.select(); try { document.execCommand('copy'); done(); } catch (e) { flash('Copy failed'); }
+    ed.setSelectionRange(cur[0], cur[1]);
+  }
+});
+$('btnClear').addEventListener('click', function () {
+  if (ed.value && !confirm('Clear the editor?')) return;
+  ed.value = ''; scheduleRender(); scheduleSave(); ed.focus();
+});
+$('btnSample').addEventListener('click', function () {
+  if (ed.value && ed.value !== SAMPLE && !confirm('Replace the editor text with the sample?')) return;
+  ed.value = SAMPLE; scheduleRender(); scheduleSave(); ed.scrollTop = 0;
+});
+
+/* ---------- init ---------- */
+var saved = store.get(KEY_TEXT);
+ed.value = saved !== null ? saved : SAMPLE;
+render();
+ed.focus();
+})();
+</script>
+</body>
+</html>
